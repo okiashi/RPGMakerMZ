@@ -3,8 +3,9 @@
 // 2022/08/03  Ver.1.0.0
 //=================================================================================
 /*:
- * @target MZ
  * @plugindesc 遠景の保存、復元
+ * @target MZ
+ * @url https://github.com/okiashi/RPGMakerMZ/blob/main/OKAS_SaveChangeParallax.js
  * @author Okiashi
  * @help OKAS_SaveChangeParallax.js
  *
