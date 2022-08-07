@@ -128,8 +128,7 @@ PluginManager.registerCommand(pluginName, "SaveChangeParallax", function(args) {
     p.LoopY = parseStrToBoolean(args.LoopY, false);
     p.Sx = Number(args.Sx, 0);
     p.Sy = Number(args.Sy, 0);
-	$gameMap.changeParallax(p.pict,p.LoopX,p.LoopY,p.Sx,p.Sy);
-	console.log('[test] ' + p.LoopX);
+    $gameMap.changeParallax(p.pict,p.LoopX,p.LoopY,p.Sx,p.Sy);
 });
 
 // =============================================================================
