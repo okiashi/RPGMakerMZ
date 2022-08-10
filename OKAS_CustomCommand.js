@@ -1,6 +1,6 @@
 //=================================================================================
 // OKAS_CustomCommand.js
-// 2022/08/10 Ver.1.0.1
+// 2022/08/10 Ver.1.0.2
 // twitter : https://twitter.com/misfit_okiashi
 //=================================================================================
 /*:
@@ -34,6 +34,7 @@
  * NG - プラグイン単体の有料販売
  * ----------------------------------------------------------------------------
  * 更新履歴：
+ * 2022/08/11 Ver.1.0.2　コモンイベントの実行タイミングを修正
  * 2022/08/10 Ver.1.0.1　PluginCommonBaseをベースプラグインとし、並列コモン追加
  * 2022/08/10 Ver.1.0.0　初版
  * ----------------------------------------------------------------------------
@@ -110,12 +111,12 @@
  *
  @ -------------------------- プラグインコマンド :　***お好きにカスタマイズして下さい。***
  * @command Com1
- * @text 【ここに演出名など/並列コモン】
+ * @text 【v1/ここに演出名など】
  * @desc v1に値を代入し、コモンイベントを実行します。
  * setAndDynamicCommon:イベント中に実行されます。
  *
  * @arg N
- * @text this/実行者/v1
+ * @text 実行者/v1
  * @desc 0:このイベント -1:プレイヤー 1～:イベントID
  * @type string
  * @default 0
@@ -128,7 +129,7 @@
  *
  @ -------------------------- プラグインコマンド :　***お好きにカスタマイズして下さい。***
  * @command Com2
- * @text 【ここに演出名など/通常コモン】
+ * @text 【v4/ここに演出名など】
  * @desc v4に値を代入し、コモンイベントを実行します。
  * setAndCommon:イベント終了後に実行されます。
  *
@@ -190,7 +191,7 @@ const MovieV = Number(parameters['MovieV']); // **カスタマイズして下さ
 const PictV = Number(parameters['PictV']); // **カスタマイズして下さい**
 const BgmV = Number(parameters['MapBGM']);
 
-//　コンボボックスから抽出、空白除去
+//　コンボボックスから抽出、空白除去　参考：NRP_CallEvent.js
  function getValue(value) {
     if (value === undefined) {
         return value;
@@ -206,7 +207,6 @@ PluginManager.registerCommand(pluginName, "Set", function(args) {  // **カス�
     const n =　args.N;
     $gameVariables.setValue(v, n);
 });
-
 // =============================================================================
 // プラグインコマンド  代入&コモン
 // =============================================================================
@@ -214,7 +214,8 @@ PluginManager.registerCommand(pluginName, "Com1", function(args) {  // **カス�
     const v = ThisV;  // **カスタマイズして下さい**
     const Id = args.CommonId;
     const eventId = this.eventId();
-    setAndDynamicCommon(args, v, Id, eventId); // **カスタマイズして下さい**
+    settingVariables(args, v, Id, eventId); // **並列コモンの場合、以下setAndDynamicCommon(引数)にして下さい**
+    this["command117"](Id); // EventCommandByCode.js
 });
 // =============================================================================
 // プラグインコマンド  代入&コモン
@@ -223,7 +224,8 @@ PluginManager.registerCommand(pluginName, "Com2", function(args) {  // **カス�
     const v = StagingV;  // **カスタマイズして下さい**
     const Id = getValue(args.CommonId);
     const eventId = this.eventId();
-    setAndCommon(args, v, Id, eventId); // **カスタマイズして下さい**
+    settingVariables(args, v, Id, eventId); // **並列コモンの場合、以下setAndDynamicCommon(引数)にして下さい**
+    this["command117"](Id); // EventCommandByCode.js
 });
 // =============================================================================
 // プラグインコマンド  代入&コモン Pict
@@ -232,7 +234,8 @@ PluginManager.registerCommand(pluginName, "Pict", function(args) {  // **カス�
     const v = PictV;  // **カスタマイズして下さい**
     const Id = getValue(args.CommonId);
     const eventId = this.eventId();
-    setAndCommon(args, v, Id, eventId); // **カスタマイズして下さい**
+    settingVariables(args, v, Id, eventId); // **並列コモンの場合、以下setAndDynamicCommon(引数)にして下さい**
+    this["command117"](Id); // EventCommandByCode.js
 });
 // =============================================================================
 // プラグインコマンド  マップBGMの保存
@@ -247,24 +250,39 @@ PluginManager.registerCommand(pluginName, "MapBgRe", function() {
     AudioManager.replayBgm($gameVariables.value(BgmV));
 });
 // ------------------------------------------------------------------------------
-// setAndCommon()　通常コモンの場合　イベント終了時に実行されます。章の表示、画面演出などに。
+// settingVariables()　変数代入、thisID置換
 // ------------------------------------------------------------------------------
-const setAndCommon = function(args, v, Id, eventId) {
+const settingVariables = function(args, v, Id, eventId) {
     const n =　args.N;
       if (n && n != 0) {
         $gameVariables.setValue(v, n);
-        $gameTemp.reserveCommonEvent(Id);
       }
       if (n == 0) {
         $gameVariables.setValue(v, eventId);
-        $gameTemp.reserveCommonEvent(Id);
       }
       else {
         // undefined , null , 空文字 , false
       }
 };
 // ------------------------------------------------------------------------------
-// setAndDynamicCommon() 並列コモンの場合 イベント中、同時に実行されます。フキダシ、アニメーション演出に。
+// Common Event
+// ------------------------------------------------------------------------------
+const _Game_Interpreter_command117 = Game_Interpreter.prototype.command117;
+Game_Interpreter.prototype.command117 = function(Id) {
+    const commonEvent = $dataCommonEvents[Id];
+    if (commonEvent) {
+        const eventId = this.isOnCurrentMap() ? this._eventId : 0;
+        this.setupChild(commonEvent.list, eventId);
+    }
+    return true;
+};
+const _Game_Interpreter_setupChild = Game_Interpreter.prototype.setupChild;
+Game_Interpreter.prototype.setupChild = function(list, eventId) {
+    this._childInterpreter = new Game_Interpreter(this._depth + 1);
+    this._childInterpreter.setup(list, eventId);
+};
+// ------------------------------------------------------------------------------
+// setAndDynamicCommon() 並列コモンの場合 イベント中、並列実行され、プレイヤーが動けるので注意です。
 // ------------------------------------------------------------------------------
 const setAndDynamicCommon = function(args, v, Id, eventId) {
     const n =　args.N;
