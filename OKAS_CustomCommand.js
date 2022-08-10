@@ -113,7 +113,6 @@
  * @command Com1
  * @text 【v1/ここに演出名など】
  * @desc v1に値を代入し、コモンイベントを実行します。
- * setAndDynamicCommon:イベント中に実行されます。
  *
  * @arg N
  * @text 実行者/v1
@@ -131,7 +130,6 @@
  * @command Com2
  * @text 【v4/ここに演出名など】
  * @desc v4に値を代入し、コモンイベントを実行します。
- * setAndCommon:イベント終了後に実行されます。
  *
  * @arg N
  * @text 演出種別/v4
