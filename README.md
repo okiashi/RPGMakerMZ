@@ -16,12 +16,13 @@
 
 利用規約：
 
- OK - 改変、再配布(無料)
+> OK - 改変、再配布(無料)
  
-      クレジット不要です。サポート対応できないため、ご自由に改変下さい。
+ クレジット不要です。サポート対応できないため、ご自由に改変下さい。
       
- NG - プラグイン単体の有料販売
+> NG - プラグイン単体の有料販売
 
+  
 
 ## プラグインリスト
 
@@ -31,6 +32,6 @@
 | [OKAS_SaveChangeParallax.js](https://github.com/okiashi/RPGMakerMZ/blob/main/OKAS_SaveChangeParallax.js)  | 遠景の保存、復元、予約  |
 | [OKAS_CustomCommand.js](https://github.com/okiashi/RPGMakerMZ/blob/main/OKAS_CustomCommand.js)  | 変数代入＆コモンイベント実行をワンコマンド化  |
 
-
-
+  
+  
 2022.8.13
