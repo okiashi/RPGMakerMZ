@@ -1,11 +1,11 @@
 # RPGMakerMZ
 
-おきあしの RPGツクールMZ用プラグイン置き場 です。自分用に作ったものですが、よかったらどうぞ...。
+おきあしの RPGツクールMZ用プラグイン置き場 です。自分用に作ったものですが、よかったらどうぞ。
 
 
 ## Author
 
-おきあし(twitter) : https://twitter.com/misfit_okiashi
+沖芦(おきあし) : https://twitter.com/misfit_okiashi
 
 プラグインの解説  : https://tm-misfit.hateblo.jp
 
