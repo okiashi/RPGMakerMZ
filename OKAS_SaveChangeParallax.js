@@ -1,14 +1,18 @@
-//=================================================================================
-// OKAS_SaveChangeParallax.js
-// 2022/08/08 Ver.1.2.0
-// twitter : https://twitter.com/misfit_okiashi
-//=================================================================================
+/* ==============================================================================
+OKAS_SaveChangeParallax.js
+SNS： https://tm-misfit.hateblo.jp
+=================================================================================
+更新履歴：
+2024/01/25 Ver.1.2.1  文言等を修正。利用規約の微改定。使い方の例(URL)を追加。
+2022/08/08 Ver.1.2.0　遠景の予約機能を追加。
+2022/08/03 Ver.1.0.0　初版
+*/
 /*:
  * @plugindesc 遠景の保存、復元、予約
- * @target MZ
- * @url https://github.com/okiashi/RPGMakerMZ/blob/main/OKAS_SaveChangeParallax.js
  * @author Okiashi
- * @help OKAS_SaveChangeParallax.js
+ * @target MZ
+ * @url https://raw.githubusercontent.com/okiashi/RPGMakerMZ/main/OKAS_SaveChangeParallax.js
+ * @help OKAS_SaveChangeParallax.js (2024/01/25 Ver.1.2.1)
  *
  * 概要：
  * プラグインコマンドで遠景の保存、復元、予約が行えます。
@@ -34,17 +38,15 @@
  *   true:  元の遠景が「なし」でも、「なし」の状態に復元します。
  *   false: 元の遠景が「なし」の時、何もせず終了します。
  * - 使い方の例
+ *   https://tm-misfit.hateblo.jp/entry/2022/08/03/180051
  *   https://tm-misfit.hateblo.jp/entry/2022/08/08/034137
  *
  * ----------------------------------------------------------------------------
  * 利用規約：
- * OK - 改変、再配布(無料)
- *      クレジット不要です。サポート対応できないため、ご自由に改変下さい。
- * NG - プラグイン単体の有料販売
- * ----------------------------------------------------------------------------
- * 更新履歴：
- * 2022/08/08 Ver.1.2.0　遠景の予約機能を追加
- * 2022/08/03 Ver.1.0.0　初版
+ * OK - 改変、プラグイン単体の再配布(無料)
+ *      サポート対応できないため、ご自由に改変下さい。クレジット不要です。
+ *      ご利用は自己責任でお願いいたします。
+ * NG - プラグイン単体の有料販売(丸ごと転載し販売などトラブルを招く行為)
  * ----------------------------------------------------------------------------
  *
  @ -------------------------- パラメータ
@@ -106,19 +108,19 @@
  * @desc 縦方向のスクロール速度。(負の数で下)
  * @default 0
  *
- @ -------------------------- プラグインコマンド
+ @ --------------------------
  * @command SaveParallax
  * @text 現在の遠景を保存(保存のみ)
  * @desc このマップの遠景を保存します。
  * スクロールなどの設定も保存します。
  *
- @ -------------------------- プラグインコマンド
+ @ --------------------------
  * @command RestorationParallax
  * @text 遠景を復元
  * @desc 遠景を変更前に戻します。
  * スクロールなどの設定も復元されます。
  *
- @ -------------------------- プラグインコマンド
+ @ --------------------------
  * @command SetParallax
  * @text 遠景を予約
  * @desc 遠景情報を予約保存します。
@@ -155,7 +157,7 @@
  * @desc 縦方向のスクロール速度。(負の数で下)
  * @default 0
  *
- @ -------------------------- プラグインコマンド
+ @ --------------------------
  * @command RestorationSetParallax
  * @text 遠景の予約を反映
  * @desc 遠景を予約した内容に変更します。
@@ -179,8 +181,10 @@ const SetPV = parseInt(parameters['Set Parallax Variable']) || 2;
 const ReOK = String(parameters['Reset Permission']) === 'true';
 
 // =============================================================================
-// プラグインコマンド  現在の遠景を保存&変更
+// プラグインコマンド
 // =============================================================================
+
+// 現在の遠景を保存&変更
 PluginManager.registerCommand(pluginName, "SaveChangeParallax", function(args) {
     Game_Map.prototype.saveParallax();
     const p = {};
@@ -192,16 +196,12 @@ PluginManager.registerCommand(pluginName, "SaveChangeParallax", function(args) {
     $gameMap.changeParallax(p.pict,p.LoopX,p.LoopY,p.Sx,p.Sy);
 });
 
-// =============================================================================
-// プラグインコマンド  現在の遠景を保存　save
-// =============================================================================
+// 現在の遠景を保存　save
 PluginManager.registerCommand(pluginName, "SaveParallax", function() {
     Game_Map.prototype.saveParallax();
 });
 
-// =============================================================================
-// プラグインコマンド  遠景の復元
-// =============================================================================
+// 遠景の復元
 PluginManager.registerCommand(pluginName, "RestorationParallax", function() {
     const v = $gameVariables.value(SavePV);
     if (v[0] || v[0] == "" && ReOK) {
@@ -212,9 +212,7 @@ PluginManager.registerCommand(pluginName, "RestorationParallax", function() {
     }
 });
 
-// =============================================================================
-// プラグインコマンド  遠景の予約 set
-// =============================================================================
+// 遠景の予約 set
 PluginManager.registerCommand(pluginName, "SetParallax", function(args) {
     const p = {};
     p.pict = String(args.Image, "");
@@ -225,9 +223,7 @@ PluginManager.registerCommand(pluginName, "SetParallax", function(args) {
     $gameVariables._data[SetPV] = [p.pict,p.LoopX,p.LoopY,p.Sx,p.Sy];
 });
 
-// =============================================================================
-// プラグインコマンド  遠景の予約を反映
-// =============================================================================
+// 遠景の予約を反映
 PluginManager.registerCommand(pluginName, "RestorationSetParallax", function() {
     const v = $gameVariables.value(SetPV);
     if (v[0] || v[0] == "" && ReOK) {
