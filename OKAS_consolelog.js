@@ -37,8 +37,12 @@ SNS： https://tm-misfit.hateblo.jp
  * - 開発支援のプラグインですので、完成時にOFFにするなど無効化して下さい。
  * - eval：改造で 文字スタイル(CSS) のカスタマイズが可能です。
  *        「設定名」「文字スタイル」をお好きに改造して下さい。
- * - 使い方の例、サンプルプロジェクト
+ * - 使い方の例
  *   https://tm-misfit.hateblo.jp/entry/2024/01/25/101457
+ * - サンプルプロジェクト(GitHub-DL)
+ *   https://github.com/okiashi/SampleProject
+ * - サンプルゲーム(Chrome)
+ *   https://okiashi.github.io/SampleProject/
  * 
  * ----------------------------------------------------------------------------
  * 利用規約：
