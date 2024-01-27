@@ -35,6 +35,10 @@ SNS： https://tm-misfit.hateblo.jp
  * メモ：
  * - 使い方の例
  *   https://tm-misfit.hateblo.jp/entry/2022/08/10/140643
+ * - サンプルプロジェクト(GitHub-DL)
+ *   https://github.com/okiashi/SampleProject
+ * - サンプルゲーム(Chrome)
+ *   https://okiashi.github.io/SampleProject/
  *
  * ----------------------------------------------------------------------------
  * 利用規約：
