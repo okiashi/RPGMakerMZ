@@ -3,16 +3,17 @@ OKAS_consolelog.js
 SNS： https://tm-misfit.hateblo.jp
 =================================================================================
 更新履歴：
+2024/01/28 Ver.1.0.1　あらかじめテストプレイ中しか作動しないよう修正。
 2024/01/25 Ver.1.0.0　初版
 */
 /*:
- * @plugindesc console.logの入力、管理支援 
+ * @plugindesc console.logの入力、管理支援
  * @author Okiashi
  * @target MZ
  * @base PluginCommonBase
  * @orderAfter PluginCommonBase
  * @url https://raw.githubusercontent.com/okiashi/RPGMakerMZ/main/OKAS_consolelog.js
- * @help OKAS_consolelog.js (2024/01/25 Ver.1.0.0)
+ * @help OKAS_consolelog.js (2024/01/28 Ver.1.0.1)
  * 
  * 概要：
  * -console.log('ここに文字');の内容をプラグインコマンドから入力できます。
@@ -119,6 +120,7 @@ SNS： https://tm-misfit.hateblo.jp
  * @text ---console.log---
  * @desc 制御文字: \v[n], \s[n] (*表示のみの用途)
  * $gameVariables.value(n)等は使えません。
+ * 
  *  @arg param
  *   @text log
  *   @type multiline_string
@@ -151,12 +153,14 @@ SNS： https://tm-misfit.hateblo.jp
  * @text ---console.log---(eval)
  * @desc 制御文字変換無しタイプ。console.log('★');と同感覚です。
  * $gameVariables.value()等が使えます。
+ * 
  *  @arg param
  *   @text log
  *   @type multiline_string
  *   @desc 色：black,red,green,yellow,blue,magenta,cyan,white,reset
  *   例) cyan + 'test' + reset
  *   @default
+ * 
  *  @arg logType
  *   @text console.
  *   @desc log: 通常のログ形式, warn: 警告形式, error: エラー形式
@@ -166,6 +170,7 @@ SNS： https://tm-misfit.hateblo.jp
  *   @option log
  *   @option warn
  *   @option error
+ * 
  *  @arg style
  *   @text text-style
  *   @desc 不要な場合、空白でOKです。
@@ -198,6 +203,7 @@ SNS： https://tm-misfit.hateblo.jp
     }
     return String(value.split("*")[0].trim());
   }
+
   /* ---------------text-style---------------
      - カスタマイズしてお楽しみください。
      - 最後の「;」を消さないようご注意下さい。
@@ -262,56 +268,62 @@ SNS： https://tm-misfit.hateblo.jp
 
   // log
   PluginManagerEx.registerCommand(script, 'log', function (args) {
-    const text = args.param;
-    const style = setTextStyle(getCombo(args.style));
-    switch (args.logType) {
-      case 'warn':
-        if (args.param !== "" && checkLogSwitch()) console.warn('%c' + text, style);
-        break;
-      case 'error':
-        if (args.param !== "" && checkLogSwitch()) console.error('%c' + text, style);
-        break;
-      default:
-        if (args.param !== "" && checkLogSwitch()) console.log('%c' + text, style);
-        break;
+    if ($gameTemp.isPlaytest()) {
+      const text = args.param;
+      const style = setTextStyle(getCombo(args.style));
+      switch (args.logType) {
+        case 'warn':
+          if (args.param !== "" && checkLogSwitch()) console.warn('%c' + text, style);
+          break;
+        case 'error':
+          if (args.param !== "" && checkLogSwitch()) console.error('%c' + text, style);
+          break;
+        default:
+          if (args.param !== "" && checkLogSwitch()) console.log('%c' + text, style);
+          break;
+      }
+      process.stdout.write("\x1b[0m"); // reset
     }
-    process.stdout.write("\x1b[0m"); // reset
   });
 
   // log eval
   PluginManager.registerCommand(pluginName, "log_eval", function (args) {
-    const text = eval(args.param);
-    const style = setTextStyle(getCombo(args.style));
-    switch (args.logType) {
-      case 'warn':
-        if (args.param !== "" && checkLogSwitch()) console.warn('%c' + text, style);
-        break;
-      case 'error':
-        if (args.param !== "" && checkLogSwitch()) console.error('%c' + text, style);
-        break;
-      default:
-        if (args.param !== "" && checkLogSwitch()) console.log('%c' + text, style);
-        break;
+    if ($gameTemp.isPlaytest()) {
+      const text = eval(args.param);
+      const style = setTextStyle(getCombo(args.style));
+      switch (args.logType) {
+        case 'warn':
+          if (args.param !== "" && checkLogSwitch()) console.warn('%c' + text, style);
+          break;
+        case 'error':
+          if (args.param !== "" && checkLogSwitch()) console.error('%c' + text, style);
+          break;
+        default:
+          if (args.param !== "" && checkLogSwitch()) console.log('%c' + text, style);
+          break;
+      }
+      process.stdout.write("\x1b[0m"); // reset
     }
-    process.stdout.write("\x1b[0m"); // reset
   });
 
   // table
   PluginManagerEx.registerCommand(script, 'table', function (args) {
-    const v1 = $gameVariables.value(param.tableVariable1);
-    const v2 = $gameVariables.value(param.tableVariable2);
-    const v3 = $gameVariables.value(param.tableVariable3);
-    const v4 = $gameVariables.value(param.tableVariable4);
-    const v5 = $gameVariables.value(param.tableVariable5);
-    const v1name = param.tableVariable1Name || 1;
-    const v2name = param.tableVariable2Name || 2;
-    const v3name = param.tableVariable3Name || 3;
-    const v4name = param.tableVariable4Name || 4;
-    const v5name = param.tableVariable5Name || 5;
-    const table = [
-      { [v1name]: v1, [v2name]: v2, [v3name]: v3, [v4name]: v4, [v5name]: v5 },
-    ];
-    if (checkLogSwitch()) console.table(table);
+    if ($gameTemp.isPlaytest()) {
+      const v1 = $gameVariables.value(param.tableVariable1);
+      const v2 = $gameVariables.value(param.tableVariable2);
+      const v3 = $gameVariables.value(param.tableVariable3);
+      const v4 = $gameVariables.value(param.tableVariable4);
+      const v5 = $gameVariables.value(param.tableVariable5);
+      const v1name = param.tableVariable1Name || 1;
+      const v2name = param.tableVariable2Name || 2;
+      const v3name = param.tableVariable3Name || 3;
+      const v4name = param.tableVariable4Name || 4;
+      const v5name = param.tableVariable5Name || 5;
+      const table = [
+        { [v1name]: v1, [v2name]: v2, [v3name]: v3, [v4name]: v4, [v5name]: v5 },
+      ];
+      if (checkLogSwitch()) console.table(table);
+    }
   });
 
 
