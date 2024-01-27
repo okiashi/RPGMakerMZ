@@ -3,6 +3,7 @@ OKAS_SaveChangeTint.js
 SNS： https://tm-misfit.hateblo.jp
 =================================================================================
 更新履歴：
+2024/01/28 Ver.1.1.1  リファクタリング。保存色調なしの状態で復元した時、全て0を代入するよう修正。
 2024/01/25 Ver.1.1.0  色調の復元・予約実行時にウェイトを指定可能に。文言等の修正。利用規約の微改定。
 2022/08/08 Ver.1.0.0  初版
 */
@@ -11,7 +12,7 @@ SNS： https://tm-misfit.hateblo.jp
  * @author Okiashi
  * @target MZ
  * @url https://raw.githubusercontent.com/okiashi/RPGMakerMZ/main/OKAS_SaveChangeTint.js
- * @help OKAS_SaveChangeTint.js (2024/01/25 Ver.1.1.0)
+ * @help OKAS_SaveChangeTint.js (2024/01/28 Ver.1.1.1)
  *
  * 概要：
  * プラグインコマンドで色調の保存、復元、予約が行えます。
@@ -20,12 +21,12 @@ SNS： https://tm-misfit.hateblo.jp
  *
  * プラグインコマンド：
  * 　[パラメータ変数1]
- * 　 1.現在の色調を保存 & 変更
- * 　 2.現在の色調を保存(保存のみ)
- * 　 3.色調の復元
+ * 　 1.現在の色調を保存し、変更
+ * 　 2.現在の色調を保存 (保存のみ)
+ * 　 3.色調の復元 (保存色調が無い場合、色調「通常」で復元します)
  * 　[パラメータ変数2]
- * 　 4.色調の予約(予約のみ)
- *  　5.色調の予約を反映
+ * 　 4.色調の予約 (予約のみ)
+ *  　5.色調の予約を反映 (予約色調が無い場合、何も起こりません)
  *
  * メモ：
  * - 「イベントコマンド」や「スクリプト」で色調の変更をした分は
@@ -66,50 +67,57 @@ SNS： https://tm-misfit.hateblo.jp
  * @text 赤(-255～255)
  * @type string
  * @desc 赤(-255～255：マイナスほど暗くなる)
+ * (空白の場合、0になります)
  * @default 0
  *
  * @arg Green
  * @text 緑(-255～255)
  * @type string
  * @desc 緑(-255～255：マイナスほど暗くなる)
+ * (空白の場合、0になります)
  * @default 0
  *
  * @arg Blue
  * @text 青(-255～255)
  * @type string
  * @desc 青(-255～255：マイナスほど暗くなる)
+ * (空白の場合、0になります)
  * @default 0
  *
  * @arg Gray
  * @text グレー(0～255)
  * @type string
  * @desc グレー(0～255：高いほど彩度なし)
+ * (空白の場合、0になります)
  * @default 0
  *
  * @arg Wait
  * @text ウェイト時間(フレーム)
  * @type string
  * @desc ウェイト時間(フレーム：1/60秒)
+ * (空白の場合、60になります)
  * @default 60
  *
  @ --------------------------
  * @command SaveTint
- * @text 現在の色調を保存(保存のみ)
+ * @text 現在の色調を保存 (保存のみ)
  * @desc 現在の色調を保存します。
  *
  @ --------------------------
  * @command RestorationTint
  * @text 色調を復元
  * @desc 色調を保存していた内容に戻します。
+ * (保存色調が無い場合、色調「通常」で復元します)
  *
  * @arg Wait
  * @text ウェイト時間(フレーム)
  * @type string
  * @desc ウェイト時間(フレーム:1/60秒)
+ * (空白の場合、60になります)
  * @default 60
  @ --------------------------
  * @command SetTint
- * @text 色調を予約
+ * @text 色調を予約 (予約のみ)
  * @desc 色調を予約保存します。
  * お好きなタイミングで「予約を反映」を実行して下さい。
  *
@@ -117,69 +125,76 @@ SNS： https://tm-misfit.hateblo.jp
  * @text 赤(-255～255)
  * @type string
  * @desc 赤(-255～255：マイナスほど暗くなる)
+ * (空白の場合、0になります)
  * @default 0
  *
  * @arg Green
  * @text 緑(-255～255)
  * @type string
  * @desc 緑(-255～255：マイナスほど暗くなる)
+ * (空白の場合、0になります)
  * @default 0
  *
  * @arg Blue
  * @text 青(-255～255)
  * @type string
  * @desc 青(-255～255：マイナスほど暗くなる)
+ * (空白の場合、0になります)
  * @default 0
  *
  * @arg Gray
  * @text グレー(0～255)
  * @type string
  * @desc グレー(0～255：高いほど彩度なし)
+ * (空白の場合、0になります)
  * @default 0
- *
- * @arg Wait
- * @text ウェイト時間(フレーム)
- * @type string
- * @desc ウェイト時間(フレーム：1/60秒)
- * @default 60
  *
  @ --------------------------
  * @command RestorationSetTint
  * @text 色調の予約を反映
  * @desc 色調を予約した内容に変更します。
+ * (予約色調が無い場合、何も起こりません)
  * 
  * @arg Wait
  * @text ウェイト時間(フレーム)
  * @type string
  * @desc ウェイト時間(フレーム:1/60秒)
+ * (空白の場合、60になります)
  * @default 60
  *
  */
-// ----------------------------------------------------------------------------
-// 全体を関数で囲む
+
 (() => {
     'use strict';
-    // プラグインパラメーターを変数にして取り込む
-    const pluginName = 'OKAS_SaveChangeTint';
+    const script = document.currentScript;
+    const pluginName = script.src.split("/").pop().replace(/\.js$/, "");
     const parameters = PluginManager.parameters(pluginName);
-    // ローカル変数の設定　(*このプラグイン内でのみ有効な変数)
-    const SaveTV = parseInt(parameters['Save Tint Variable']) || 1;
-    const SetTV = parseInt(parameters['Set Tint Variable']) || 2;
-
-    // =============================================================================
-    // プラグインコマンド
-    // =============================================================================
-
-    // 現在の色調を保存&変更
-    PluginManager.registerCommand(pluginName, "SaveChangeTint", function (args) {
-        Game_Map.prototype.saveTint();
+    const SaveTintV = parseInt(parameters['Save Tint Variable']) || 1;
+    const SetTintV = parseInt(parameters['Set Tint Variable']) || 2;
+    // set p{args}
+    function setArgsP(args) {
         const p = {};
         p.red = Number(args.Red) || 0;
         p.green = Number(args.Green) || 0;
         p.blue = Number(args.Blue) || 0;
         p.gray = Number(args.Gray) || 0;
-        p.wait = Number(args.Wait) || 60;
-        $gameScreen.startTint([p.red, p.green, p.blue, p.gray], p.wait);
+        return [p.red, p.green, p.blue, p.gray];
+    }
+    // startTint(v)
+    function startTint_OKAS(v, wait) {
+        $gameScreen.startTint([v[0], v[1], v[2], v[3]], wait);
+    }
+
+    // =============================================================================
+    // プラグインコマンド
+    // =============================================================================
+
+    // 現在の色調を保存し、変更
+    PluginManager.registerCommand(pluginName, "SaveChangeTint", function (args) {
+        Game_Map.prototype.saveTint();
+        const p = setArgsP(args);
+        const wait = Number(args.Wait) || 60;
+        $gameScreen.startTint(p, wait);
     });
 
     // 現在の色調を保存　save
@@ -189,34 +204,29 @@ SNS： https://tm-misfit.hateblo.jp
 
     // 色調の復元
     PluginManager.registerCommand(pluginName, "RestorationTint", function (args) {
-        const v = $gameVariables.value(SaveTV);
+        const v = $gameVariables.value(SaveTintV);
         const wait = Number(args.Wait) || 60;
-        $gameScreen.startTint([v[0], v[1], v[2], v[3]], wait);
+        v ? startTint_OKAS(v, wait) : $gameScreen.startTint([0, 0, 0, 0], wait);
     });
 
     // 色調の予約 set
     PluginManager.registerCommand(pluginName, "SetTint", function (args) {
-        const p = {};
-        p.red = Number(args.Red) || 0;
-        p.green = Number(args.Green) || 0;
-        p.blue = Number(args.Blue) || 0;
-        p.gray = Number(args.Gray) || 0;
-        p.wait = Number(args.Wait) || 60;
-        $gameVariables._data[SetTV] = [p.red, p.green, p.blue, p.gray, p.wait];
+        const p = setArgsP(args);
+        $gameVariables.setValue(SetTintV, p);
     });
 
     // 色調の予約を反映
     PluginManager.registerCommand(pluginName, "RestorationSetTint", function (args) {
-        const v = $gameVariables.value(SetTV);
+        const v = $gameVariables.value(SetTintV);
         const wait = Number(args.Wait) || 60;
-        $gameScreen.startTint([v[0], v[1], v[2], v[3]], wait);
+        if (v) startTint_OKAS(v, wait);
     });
 
     // ------------------------------------------------------------------------------
     // saveTint()
     // ------------------------------------------------------------------------------
     Game_Map.prototype.saveTint = function () {
-        $gameVariables._data[SaveTV] = [$gameScreen._tone[0], $gameScreen._tone[1], $gameScreen._tone[2], $gameScreen._tone[3], 60];
+        $gameVariables.setValue(SaveTintV, [$gameScreen.tone()[0], $gameScreen.tone()[1], $gameScreen.tone()[2], $gameScreen.tone()[3]]);
     };
 
 
