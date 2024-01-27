@@ -1,23 +1,19 @@
-# RPGMakerMZ
-
 沖芦(おきあし) の RPGツクールMZ用プラグイン置き場 です。  
 自分用に作ったものですが、よかったらどうぞ。
   
-  
-## Author
-
-沖芦(おきあし)  
 プラグインの解説  : https://tm-misfit.hateblo.jp
+<br><br>
   
-  
-## Licence
+## 利用規約
 
-利用規約：  
-OK　-　改変、プラグイン単体の再配布(無料)  
-     　サポート対応できないため、ご自由に改変下さい。クレジット不要です。  
-     　ご利用は自己責任でお願いいたします。  
-NG　-　プラグイン単体の有料販売(丸ごと転載し販売などトラブルを招く行為)
-  
+MITライセンス + 禁止行為の設定、という感じです。
+- OK
+  - 改変、プラグイン単体の再配布(無料)
+  - サポート対応できないため、ご自由に改変下さい。クレジット不要です。
+  - ご利用は自己責任でお願いいたします。  
+- NG
+  - プラグイン単体の有料販売(丸ごと転載し販売などトラブルを招く行為)
+<br>  
   
   
 ## プラグインリスト
@@ -29,7 +25,7 @@ NG　-　プラグイン単体の有料販売(丸ごと転載し販売などト�
 | [OKAS_CustomCommand.js](https://github.com/okiashi/RPGMakerMZ/blob/main/OKAS_CustomCommand.js)  | 変数代入＆コモンイベント実行をワンコマンド化  |
 | [OKAS_consolelog.js](https://github.com/okiashi/RPGMakerMZ/blob/main/OKAS_consolelog.js)  | console.logの入力、管理支援   |  
   
-    
-  
+<br>
+<br>
   
 2024/01/25
