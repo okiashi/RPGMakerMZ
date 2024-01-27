@@ -203,7 +203,7 @@ SNS： https://tm-misfit.hateblo.jp
   }
   // changeParallax(v)
   function changeParallax_OKAS(v) {
-    if ((v[0] || v[0] === "") && isResetPre) $gameMap.changeParallax(v[0], v[1], v[2], v[3], v[4]);
+    if (v[0] || (v[0] === "" && isResetPre)) $gameMap.changeParallax(v[0], v[1], v[2], v[3], v[4]);
   }
   // reset
   function resetParallax_OKAS() {
