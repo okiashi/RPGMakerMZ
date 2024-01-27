@@ -3,6 +3,7 @@ OKAS_SaveChangeParallax.js
 SNS： https://tm-misfit.hateblo.jp
 =================================================================================
 更新履歴：
+2024/01/28 Ver.1.2.2  リファクタリング。予約遠景と保存遠景が無い場合の挙動を修正。デフォルトに戻すプラグインコマンドを追加。
 2024/01/25 Ver.1.2.1  文言等を修正。利用規約の微改定。使い方の例(URL)を追加。
 2022/08/08 Ver.1.2.0　遠景の予約機能を追加。
 2022/08/03 Ver.1.0.0　初版
@@ -12,7 +13,7 @@ SNS： https://tm-misfit.hateblo.jp
  * @author Okiashi
  * @target MZ
  * @url https://raw.githubusercontent.com/okiashi/RPGMakerMZ/main/OKAS_SaveChangeParallax.js
- * @help OKAS_SaveChangeParallax.js (2024/01/25 Ver.1.2.1)
+ * @help OKAS_SaveChangeParallax.js (2024/01/28 Ver.1.2.2)
  *
  * 概要：
  * プラグインコマンドで遠景の保存、復元、予約が行えます。
@@ -23,12 +24,14 @@ SNS： https://tm-misfit.hateblo.jp
  *
  * プラグインコマンド：
  * 　[パラメータ変数1]
- * 　 1.現在の遠景を保存 & 変更
- * 　 2.現在の遠景を保存(保存のみ)
- * 　 3.遠景の復元
+ * 　 1.現在の遠景を保存し、変更
+ * 　 2.現在の遠景を保存 (保存のみ)
+ * 　 3.遠景の復元 (保存遠景が無い場合、データベース通りに復元します)
  * 　[パラメータ変数2]
- * 　 4.遠景の予約(予約のみ)
- *  　5.遠景の予約を反映
+ * 　 4.遠景の予約 (予約のみ)
+ *  　5.遠景の予約を反映 (予約遠景が無い場合、何も起こりません)
+ *   [Ver.1.2.2]
+ *    6.データベース遠景に戻す
  *
  * メモ：
  * - 「イベントコマンド」や「スクリプト」で遠景の変更をした分は
@@ -37,6 +40,10 @@ SNS： https://tm-misfit.hateblo.jp
  * - 「遠景なし」の復元を許可
  *   true:  元の遠景が「なし」でも、「なし」の状態に復元します。
  *   false: 元の遠景が「なし」の時、何もせず終了します。
+ * - 当プラグインコマンド・ツクールMZのイベントコマンドによる「遠景の変更」は
+ *   一時的な性質です。場所移動などでデータベース通りの遠景に戻ります。
+ *   演出等で一時的に遠景を変更・復元したい場合にご利用下さい。
+ *   遠景を恒久的に変更するには別のプラグインをご利用下さいませ。
  * - 使い方の例
  *   https://tm-misfit.hateblo.jp/entry/2022/08/03/180051
  *   https://tm-misfit.hateblo.jp/entry/2022/08/08/034137
@@ -73,7 +80,7 @@ SNS： https://tm-misfit.hateblo.jp
  *
  @ -------------------------- プラグインコマンド
  * @command SaveChangeParallax
- * @text 現在の遠景を変更&保存
+ * @text 現在の遠景を保存し、変更
  * @desc 現在の遠景を保存してから変更します。
  * スクロールなどの設定も保存されます。
  *
@@ -82,6 +89,7 @@ SNS： https://tm-misfit.hateblo.jp
  * @type file
  * @dir img/parallaxes/
  * @desc 遠景をこのピクチャに変更します。
+ * (空白にすると「遠景なし」に応用可能です)
  * @default
  *
  * @arg LoopX
@@ -110,7 +118,7 @@ SNS： https://tm-misfit.hateblo.jp
  *
  @ --------------------------
  * @command SaveParallax
- * @text 現在の遠景を保存(保存のみ)
+ * @text 現在の遠景を保存 (保存のみ)
  * @desc このマップの遠景を保存します。
  * スクロールなどの設定も保存します。
  *
@@ -118,11 +126,11 @@ SNS： https://tm-misfit.hateblo.jp
  * @command RestorationParallax
  * @text 遠景を復元
  * @desc 遠景を変更前に戻します。
- * スクロールなどの設定も復元されます。
+ * (保存遠景が無い場合、データベース通りに復元します)
  *
  @ --------------------------
  * @command SetParallax
- * @text 遠景を予約
+ * @text 遠景を予約 (予約のみ)
  * @desc 遠景情報を予約保存します。
  * お好きなタイミングで「予約を反映」を実行して下さい。
  *
@@ -131,6 +139,7 @@ SNS： https://tm-misfit.hateblo.jp
  * @type file
  * @dir img/parallaxes/
  * @desc 遠景をこのピクチャに変更します。
+ * (空白にすると「遠景なし」に応用可能です)
  * @default
  *
  * @arg LoopX
@@ -161,86 +170,90 @@ SNS： https://tm-misfit.hateblo.jp
  * @command RestorationSetParallax
  * @text 遠景の予約を反映
  * @desc 遠景を予約した内容に変更します。
- * スクロールなどの設定も反映されます。
+ * (予約遠景が無い場合、何も起こりません)
+ * 
+ @ --------------------------
+ * @command ResetParallax
+ * @text データベース遠景に戻す
+ * @desc 遠景をデータベース通りに戻します。
  *
  */
-// ----------------------------------------------------------------------------
-//　全体を関数で囲む
+
 (() => {
-    'use strict';
-//　プラグインパラメーターを変数にして取り込む
-const pluginName = 'OKAS_SaveChangeParallax';
-const parameters = PluginManager.parameters(pluginName);
-// Boolean変換
-function parseStrToBoolean(str) {
+  'use strict';
+  const script = document.currentScript;
+  const pluginName = script.src.split("/").pop().replace(/\.js$/, "");
+  const parameters = PluginManager.parameters(pluginName);
+  const SaveParallaxV = parseInt(parameters['Save Parallax Variable']) || 1;
+  const SetParallaxV = parseInt(parameters['Set Parallax Variable']) || 2;
+  const isResetPre = String(parameters['Reset Permission']) === 'true';
+  // boolean
+  function toBoolean(str) {
     return (str == 'true') ? true : false;
-}
-//　ローカル変数の設定　(*このプラグイン内でのみ有効な変数)
-const SavePV = parseInt(parameters['Save Parallax Variable']) || 1;
-const SetPV = parseInt(parameters['Set Parallax Variable']) || 2;
-const ReOK = String(parameters['Reset Permission']) === 'true';
-
-// =============================================================================
-// プラグインコマンド
-// =============================================================================
-
-// 現在の遠景を保存&変更
-PluginManager.registerCommand(pluginName, "SaveChangeParallax", function(args) {
-    Game_Map.prototype.saveParallax();
+  }
+  // set p{args}
+  function setArgsP(args) {
     const p = {};
-    p.pict = String(args.Image, "");
-    p.LoopX = parseStrToBoolean(args.LoopX, false);
-    p.LoopY = parseStrToBoolean(args.LoopY, false);
-    p.Sx = Number(args.Sx, 0);
-    p.Sy = Number(args.Sy, 0);
-    $gameMap.changeParallax(p.pict,p.LoopX,p.LoopY,p.Sx,p.Sy);
-});
+    p.pict = String(args.Image) || "";
+    p.LoopX = toBoolean(args.LoopX) || false;
+    p.LoopY = toBoolean(args.LoopY) || false;
+    p.Sx = Number(args.Sx) || 0;
+    p.Sy = Number(args.Sy) || 0;
+    return [p.pict, p.LoopX, p.LoopY, p.Sx, p.Sy];
+  }
+  // changeParallax(v)
+  function changeParallax_OKAS(v) {
+    if ((v[0] || v[0] === "") && isResetPre) $gameMap.changeParallax(v[0], v[1], v[2], v[3], v[4]);
+  }
+  // reset
+  function resetParallax_OKAS() {
+    $gameMap.changeParallax($dataMap.parallaxName, $dataMap.parallaxLoopX, $dataMap.parallaxLoopY, $dataMap.parallaxSx, $dataMap.parallaxSy);
+  }
 
-// 現在の遠景を保存　save
-PluginManager.registerCommand(pluginName, "SaveParallax", function() {
+  // =============================================================================
+  // プラグインコマンド
+  // =============================================================================
+
+  // 現在の遠景を保存し、変更
+  PluginManager.registerCommand(pluginName, "SaveChangeParallax", function (args) {
     Game_Map.prototype.saveParallax();
-});
+    const p = setArgsP(args);
+    $gameMap.changeParallax(...p);
+  });
 
-// 遠景の復元
-PluginManager.registerCommand(pluginName, "RestorationParallax", function() {
-    const v = $gameVariables.value(SavePV);
-    if (v[0] || v[0] == "" && ReOK) {
-      $gameMap.changeParallax(v[0],v[1],v[2],v[3],v[4]);
-    }
-    else {
-      // undefined , null , 空文字 , false , 0
-    }
-});
+  // 現在の遠景を保存　save
+  PluginManager.registerCommand(pluginName, "SaveParallax", function () {
+    Game_Map.prototype.saveParallax();
+  });
 
-// 遠景の予約 set
-PluginManager.registerCommand(pluginName, "SetParallax", function(args) {
-    const p = {};
-    p.pict = String(args.Image, "");
-    p.LoopX = parseStrToBoolean(args.LoopX, false);
-    p.LoopY = parseStrToBoolean(args.LoopY, false);
-    p.Sx = Number(args.Sx, 0);
-    p.Sy = Number(args.Sy, 0);
-    $gameVariables._data[SetPV] = [p.pict,p.LoopX,p.LoopY,p.Sx,p.Sy];
-});
+  // 遠景の復元
+  PluginManager.registerCommand(pluginName, "RestorationParallax", function () {
+    const v = $gameVariables.value(SaveParallaxV);
+    v ? changeParallax_OKAS(v) : resetParallax_OKAS();
+  });
 
-// 遠景の予約を反映
-PluginManager.registerCommand(pluginName, "RestorationSetParallax", function() {
-    const v = $gameVariables.value(SetPV);
-    if (v[0] || v[0] == "" && ReOK) {
-      $gameMap.changeParallax(v[0],v[1],v[2],v[3],v[4]);
-    }
-    else {
-      // undefined , null , 空文字 , false , 0
-    }
-});
+  // 遠景の予約 set
+  PluginManager.registerCommand(pluginName, "SetParallax", function (args) {
+    const p = setArgsP(args);
+    $gameVariables.setValue(SetParallaxV, p);
+  });
 
-// ------------------------------------------------------------------------------
-// saveParallax()
-// ------------------------------------------------------------------------------
-Game_Map.prototype.saveParallax = function() {
-    $gameVariables._data[SavePV] =
-    [$gameMap._parallaxName, $gameMap._parallaxLoopX, $gameMap._parallaxLoopY, $gameMap._parallaxSx, $gameMap._parallaxSy];
-};
+  // 遠景の予約を反映
+  PluginManager.registerCommand(pluginName, "RestorationSetParallax", function () {
+    const v = $gameVariables.value(SetParallaxV);
+    if (v) changeParallax_OKAS(v);
+  });
+
+  // データベース遠景に戻す
+  PluginManager.registerCommand(pluginName, "ResetParallax", function () {
+    resetParallax_OKAS();
+  });
+
+  // saveParallax() --- $dataMap でなく現在の遠景情報を保存
+  // ----------------------------------------------------
+  Game_Map.prototype.saveParallax = function () {
+    $gameVariables.setValue(SaveParallaxV, [$gameMap.parallaxName(), $gameMap._parallaxLoopX, $gameMap._parallaxLoopY, $gameMap._parallaxSx, $gameMap._parallaxSy]);
+  };
 
 
 })();
